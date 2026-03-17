@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>관리자 | 제주창조경제혁신센터</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: -apple-system, 'Noto Sans KR', sans-serif; }
+    .nav-item.active { background-color:#eff6ff; color:#2563eb; font-weight:600; }
+    .tab-btn.active  { border-bottom:2px solid #2563eb; color:#2563eb; font-weight:600; }
+    .status-pending   { background:#fef3c7; color:#92400e; }
+    .status-approved  { background:#d1fae5; color:#065f46; }
+    .status-checked-in{ background:#dbeafe; color:#1e40af; }
+    .status-completed { background:#e5e7eb; color:#374151; }
+    .status-rejected  { background:#fee2e2; color:#991b1b; }
+    .status-no-show   { background:#ffedd5; color:#9a3412; }
+    tr:hover td { background-color:#f9fafb; }
+    .toggle-track { width:40px;height:22px;background:#d1d5db;border-radius:999px;position:relative;cursor:pointer;transition:background .2s; }
+    .toggle-track.on { background:#2563eb; }
+    .toggle-thumb { width:16px;height:16px;background:white;border-radius:50%;position:absolute;top:3px;left:3px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2); }
+    .toggle-track.on .toggle-thumb { left:21px; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+<div class="flex flex-1">
+
+<!-- ══ 사이드바 ══ -->
+<aside class="w-56 bg-white border-r border-gray-200 flex flex-col fixed h-full z-10 shadow-sm">
+  <div class="px-4 py-4 border-b border-gray-200">
+    <img src="https://ccei.creativekorea.or.kr/jeju/resources/images/common/logo_jeju.png"
+         alt="제주창조경제혁신센터" class="h-7 w-auto max-w-[140px] object-contain"
+         onerror="this.onerror=null;this.style.display='none';document.getElementById('sb-logo-fb').style.display='flex'">
+    <div id="sb-logo-fb" style="display:none" class="items-center gap-2">
+      <div class="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center">
+        <span class="text-white text-[10px] font-extrabold">JC</span>
+      </div>
+      <span class="text-xs font-bold text-gray-800">제주창조경제혁신센터</span>
+    </div>
+    <p class="text-[10px] text-gray-400 mt-1">공간 이용 관리 시스템</p>
+  </div>
+
+  <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+    <button onclick="showView('dashboard')" id="nav-dashboard"
+      class="nav-item active w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      대시보드
+    </button>
+    <button onclick="showView('applications')" id="nav-applications"
+      class="nav-item w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      신청 관리
+      <span id="badge-pending" class="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full hidden"></span>
+    </button>
+    <button onclick="showView('facilities')" id="nav-facilities"
+      class="nav-item w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+      시설 현황
+    </button>
+    <button onclick="showView('visitor-history')" id="nav-visitor-history"
+      class="nav-item w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      방문 이력
+    </button>
+    <button onclick="showView('facility-settings')" id="nav-facility-settings"
+      class="nav-item w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      시설 관리
+    </button>
+  </nav>
+
+  <div class="px-3 py-4 border-t border-gray-200">
+    <div class="px-3 py-2 flex items-center gap-2">
+      <div class="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center">
+        <span class="text-xs font-bold text-blue-700">관</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-xs font-medium text-gray-700">관리자</p>
+        <p class="text-[10px] text-gray-400">admin@jejucc.kr</p>
+      </div>
+    </div>
+    <a href="prototype_신청자.html"
+       class="mt-2 w-full flex items-center justify-center gap-1 px-3 py-2 text-xs text-gray-500 hover:text-blue-600 border border-gray-200 hover:border-blue-300 rounded-lg transition-colors">
+      신청자 화면 →
+    </a>
+  </div>
+</aside>
+
+<!-- ══ 메인 ══ -->
+<div class="ml-56 flex-1 flex flex-col">
+  <header class="bg-white border-b border-gray-200 px-6 h-14 flex items-center justify-between sticky top-0 z-10">
+    <h1 id="page-title" class="text-base font-bold text-gray-900">대시보드</h1>
+    <div class="flex items-center gap-3">
+      <span id="current-time" class="text-xs text-gray-400"></span>
+      <button onclick="loadData()" class="text-xs text-gray-500 hover:text-blue-600 border border-gray-200 rounded-lg px-2.5 py-1.5 hover:border-blue-300 transition-colors">↻ 새로고침</button>
+    </div>
+  </header>
+
+  <main class="flex-1 p-6">
+
+    <!-- ── 대시보드 ── -->
+    <div id="view-dashboard">
+      <div class="grid grid-cols-5 gap-3 mb-6">
+        <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+          <p class="text-xs text-gray-500 mb-1">오늘 총 신청</p>
+          <p id="card-total" class="text-2xl font-bold text-gray-900">0</p>
+          <p class="text-xs text-gray-400 mt-1">건</p>
+        </div>
+        <div class="bg-amber-50 rounded-xl border border-amber-200 p-4 shadow-sm">
+          <p class="text-xs text-amber-700 mb-1">승인 대기</p>
+          <p id="card-pending" class="text-2xl font-bold text-amber-600">0</p>
+          <p class="text-xs text-amber-500 mt-1">건</p>
+        </div>
+        <div class="bg-green-50 rounded-xl border border-green-200 p-4 shadow-sm">
+          <p class="text-xs text-green-700 mb-1">체크인 예정</p>
+          <p id="card-approved" class="text-2xl font-bold text-green-600">0</p>
+          <p class="text-xs text-green-500 mt-1">건 (승인됨)</p>
+        </div>
+        <div class="bg-blue-50 rounded-xl border border-blue-200 p-4 shadow-sm">
+          <p class="text-xs text-blue-700 mb-1">현재 이용 중</p>
+          <p id="card-checkedin" class="text-2xl font-bold text-blue-600">0</p>
+          <p class="text-xs text-blue-500 mt-1">명 (체크인)</p>
+        </div>
+        <div class="bg-orange-50 rounded-xl border border-orange-200 p-4 shadow-sm">
+          <p class="text-xs text-orange-700 mb-1">오늘 노쇼</p>
+          <p id="card-noshow" class="text-2xl font-bold text-orange-600">0</p>
+          <p class="text-xs text-orange-500 mt-1">건</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-4">
+        <div class="col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm">
+          <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+            <h3 class="text-sm font-bold text-gray-900">최근 신청 현황</h3>
+            <button onclick="showView('applications')" class="text-xs text-blue-600 hover:underline">전체 보기 →</button>
+          </div>
+          <div id="recent-list" class="divide-y divide-gray-100"></div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
+          <div class="px-5 py-4 border-b border-gray-200">
+            <h3 class="text-sm font-bold text-gray-900">⏳ 승인 대기</h3>
+          </div>
+          <div id="quick-pending" class="divide-y divide-gray-100 max-h-80 overflow-y-auto"></div>
+          <div id="quick-empty" class="hidden px-5 py-8 text-center text-sm text-gray-400">대기 중인 신청이 없습니다</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 신청 관리 ── -->
+    <div id="view-applications" class="hidden">
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-4 px-5 py-3 flex items-center gap-3 flex-wrap">
+        <div class="flex gap-0.5">
+          <button onclick="setFilter('all')"        id="tab-all"        class="tab-btn active text-sm px-3 py-2">전체</button>
+          <button onclick="setFilter('pending')"    id="tab-pending"    class="tab-btn text-sm px-3 py-2 text-gray-500">대기</button>
+          <button onclick="setFilter('approved')"   id="tab-approved"   class="tab-btn text-sm px-3 py-2 text-gray-500">승인</button>
+          <button onclick="setFilter('checked-in')" id="tab-checked-in" class="tab-btn text-sm px-3 py-2 text-gray-500">체크인</button>
+          <button onclick="setFilter('completed')"  id="tab-completed"  class="tab-btn text-sm px-3 py-2 text-gray-500">완료</button>
+          <button onclick="setFilter('no-show')"    id="tab-no-show"    class="tab-btn text-sm px-3 py-2 text-gray-500">노쇼</button>
+          <button onclick="setFilter('rejected')"   id="tab-rejected"   class="tab-btn text-sm px-3 py-2 text-gray-500">거부</button>
+        </div>
+        <div class="ml-auto flex items-center gap-2 flex-wrap">
+          <select id="filter-location" onchange="renderApplications()"
+            class="border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <option value="">전체 장소</option>
+          </select>
+          <input type="date" id="filter-date" onchange="renderApplications()"
+            class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="text" id="filter-search" oninput="renderApplications()" placeholder="이름·소속·이메일"
+            class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm w-36 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-gray-50 border-b border-gray-200">
+                <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 w-28">신청번호</th>
+                <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500">이름·소속</th>
+                <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500">장소</th>
+                <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500">목적</th>
+                <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500">입실 예정</th>
+                <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500">퇴실 예정</th>
+                <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 w-14">연속</th>
+                <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 w-16">상태</th>
+                <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 w-36">액션</th>
+              </tr>
+            </thead>
+            <tbody id="app-table-body" class="divide-y divide-gray-100"></tbody>
+          </table>
+        </div>
+        <div id="app-empty" class="hidden py-16 text-center text-sm text-gray-400">해당 조건의 신청이 없습니다</div>
+      </div>
+    </div>
+
+    <!-- ── 시설 현황 ── -->
+    <div id="view-facilities" class="hidden">
+      <div id="facility-status-grid" class="space-y-6"></div>
+    </div>
+
+    <!-- ── 방문 이력 ── -->
+    <div id="view-visitor-history" class="hidden">
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-4 px-5 py-4 flex items-center gap-3">
+        <input type="text" id="history-search" placeholder="이름, 이메일, 소속으로 검색"
+          class="flex-1 border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          oninput="renderVisitorHistory()">
+        <button onclick="renderVisitorHistory()"
+          class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors">검색</button>
+      </div>
+      <div id="visitor-table-wrap" class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-200">
+              <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500">이름</th>
+              <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500">이메일</th>
+              <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500">소속</th>
+              <th class="text-center px-4 py-3 text-xs font-semibold text-gray-500">총 신청</th>
+              <th class="text-center px-4 py-3 text-xs font-semibold text-gray-500">방문 완료</th>
+              <th class="text-center px-4 py-3 text-xs font-semibold text-gray-500">노쇼</th>
+              <th class="text-center px-4 py-3 text-xs font-semibold text-gray-500">노쇼율</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500">마지막 방문</th>
+              <th class="text-center px-4 py-3 text-xs font-semibold text-gray-500">상세</th>
+            </tr>
+          </thead>
+          <tbody id="visitor-table-body" class="divide-y divide-gray-100"></tbody>
+        </table>
+        <div id="visitor-empty" class="hidden py-16 text-center text-sm text-gray-400">검색 결과가 없습니다</div>
+      </div>
+    </div>
+
+    <!-- ── 시설 관리 ── -->
+    <div id="view-facility-settings" class="hidden">
+      <div class="mb-4 flex items-center justify-between">
+        <p class="text-sm text-gray-500">저장 즉시 신청자 화면에 반영됩니다.</p>
+        <button onclick="resetFacilityConfig()"
+          class="text-xs text-red-500 hover:text-red-700 border border-red-200 hover:border-red-400 rounded-lg px-3 py-1.5 transition-colors">
+          기본값으로 초기화
+        </button>
+      </div>
+      <div id="facility-settings-grid" class="grid grid-cols-2 gap-4"></div>
+    </div>
+
+  </main>
+
+  <footer class="bg-white border-t border-gray-200 py-4 px-6 flex items-center justify-between mt-auto">
+    <img src="https://ccei.creativekorea.or.kr/jeju/resources/images/common/logo_jeju.png"
+         alt="제주창조경제혁신센터" class="h-5 w-auto opacity-40 grayscale" onerror="this.style.display='none'">
+    <p class="text-[11px] text-gray-400">© 2026 제주창조경제혁신센터 공간 이용 관리 시스템</p>
+  </footer>
+</div>
+</div>
+
+<!-- ══ 상세 모달 ══ -->
+<div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <div class="px-6 py-5 border-b border-gray-200 flex items-center justify-between">
+      <h3 class="font-bold text-gray-900">신청 상세</h3>
+      <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
+    </div>
+    <div id="modal-body" class="px-6 py-5 space-y-4"></div>
+    <div id="modal-actions" class="px-6 py-4 border-t border-gray-200 flex gap-2 flex-wrap"></div>
+  </div>
+</div>
+
+<!-- ══ 방문 이력 상세 모달 ══ -->
+<div id="history-modal" class="hidden fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <div class="px-6 py-5 border-b border-gray-200 flex items-center justify-between">
+      <h3 id="history-modal-title" class="font-bold text-gray-900">방문 이력</h3>
+      <button onclick="closeHistoryModal()" class="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
+    </div>
+    <div id="history-modal-body" class="px-6 py-5"></div>
+  </div>
+</div>
+
+<script>
+// ══ 시설 설정 기본값 ══
+const DEFAULT_FACILITY_CONFIG = [
+  { id:'center',     name:'센터',     icon:'🏛️', enabled:true, facilities:[
+    {id:'ctr-a',  name:'회의실 A', capacity:4,  enabled:true},
+    {id:'ctr-b',  name:'회의실 B', capacity:8,  enabled:true},
+    {id:'ctr-c',  name:'회의실 C', capacity:6,  enabled:true},
+    {id:'ctr-s',  name:'세미나실', capacity:20, enabled:true},
+    {id:'ctr-3d', name:'3D프린터', capacity:1,  enabled:true},
+  ]},
+  { id:'workation1', name:'워케이션1', icon:'🌴', enabled:true, facilities:[
+    {id:'wk1-a', name:'회의실 A', capacity:4,  enabled:true},
+    {id:'wk1-b', name:'회의실 B', capacity:8,  enabled:true},
+    {id:'wk1-c', name:'회의실 C', capacity:6,  enabled:true},
+    {id:'wk1-s', name:'세미나실', capacity:15, enabled:true},
+  ]},
+  { id:'workation2', name:'워케이션2', icon:'🌊', enabled:true, facilities:[
+    {id:'wk2-a', name:'회의실 A', capacity:4,  enabled:true},
+    {id:'wk2-b', name:'회의실 B', capacity:8,  enabled:true},
+    {id:'wk2-c', name:'회의실 C', capacity:6,  enabled:true},
+    {id:'wk2-s', name:'세미나실', capacity:15, enabled:true},
+  ]},
+  { id:'workation3', name:'워케이션3', icon:'☀️', enabled:true, facilities:[
+    {id:'wk3-a', name:'회의실 A', capacity:4,  enabled:true},
+    {id:'wk3-b', name:'회의실 B', capacity:8,  enabled:true},
+    {id:'wk3-c', name:'회의실 C', capacity:6,  enabled:true},
+    {id:'wk3-s', name:'세미나실', capacity:15, enabled:true},
+  ]},
+];
+
+// ══ 목업 데이터 ══
+const MOCK = [
+  {id:'JC-2026-0001',name:'김민준',org:'스타트업 A',  phone:'010-1234-5678',email:'kim@startupa.com', purpose:'업무·재택근무',detail:'',      checkIn:'2026-03-17T09:00',checkOut:'2026-03-17T18:00',isContinuous:true, contEndDate:'2026-03-21',location:'센터',    locationId:'center',    locationIcon:'🏛️',facilities:['회의실 A'],status:'checked-in',appliedAt:'2026-03-16T14:20',actualCheckIn:'2026-03-17T09:12',actualCheckOut:null,memo:''},
+  {id:'JC-2026-0002',name:'이수진',org:'제주대학교',  phone:'010-2345-6789',email:'lee@jeju.ac.kr',   purpose:'미팅·상담',   detail:'투자 미팅',checkIn:'2026-03-17T10:00',checkOut:'2026-03-17T12:00',isContinuous:false,contEndDate:'',      location:'워케이션1',locationId:'workation1',locationIcon:'🌴',facilities:['회의실 B'],status:'pending',   appliedAt:'2026-03-17T08:05',actualCheckIn:null,actualCheckOut:null,memo:''},
+  {id:'JC-2026-0003',name:'박정호',org:'프리랜서',    phone:'010-3456-7890',email:'park@gmail.com',   purpose:'창업 활동',   detail:'사업계획서',checkIn:'2026-03-17T13:00',checkOut:'2026-03-17T17:00',isContinuous:false,contEndDate:'',      location:'워케이션2',locationId:'workation2',locationIcon:'🌊',facilities:[],           status:'approved',  appliedAt:'2026-03-16T22:10',actualCheckIn:null,actualCheckOut:null,memo:''},
+  {id:'JC-2026-0004',name:'최미래',org:'디자인회사 B',phone:'010-4567-8901',email:'choi@design.kr',   purpose:'교육·세미나', detail:'UX 워크숍', checkIn:'2026-03-18T09:00',checkOut:'2026-03-18T18:00',isContinuous:false,contEndDate:'',      location:'센터',    locationId:'center',    locationIcon:'🏛️',facilities:['세미나실'],  status:'pending',   appliedAt:'2026-03-17T07:30',actualCheckIn:null,actualCheckOut:null,memo:''},
+  {id:'JC-2026-0005',name:'강동원',org:'개인',        phone:'010-5678-9012',email:'kang@naver.com',   purpose:'장비 이용',   detail:'3D 출력',   checkIn:'2026-03-18T14:00',checkOut:'2026-03-18T16:00',isContinuous:false,contEndDate:'',      location:'센터',    locationId:'center',    locationIcon:'🏛️',facilities:['3D프린터'], status:'pending',   appliedAt:'2026-03-17T09:45',actualCheckIn:null,actualCheckOut:null,memo:''},
+  {id:'JC-2026-0006',name:'윤지수',org:'스타트업 C',  phone:'010-6789-0123',email:'yoon@startup-c.kr',purpose:'업무·재택근무',detail:'',          checkIn:'2026-03-16T09:00',checkOut:'2026-03-16T18:00',isContinuous:false,contEndDate:'',      location:'워케이션3',locationId:'workation3',locationIcon:'☀️',facilities:[],           status:'completed', appliedAt:'2026-03-15T16:00',actualCheckIn:'2026-03-16T09:05',actualCheckOut:'2026-03-16T17:50',memo:''},
+  {id:'JC-2026-0007',name:'임태현',org:'대학원생',    phone:'010-7890-1234',email:'lim@university.ac.kr',purpose:'창업 활동',detail:'사업화',    checkIn:'2026-03-16T10:00',checkOut:'2026-03-16T15:00',isContinuous:false,contEndDate:'',      location:'워케이션1',locationId:'workation1',locationIcon:'🌴',facilities:['회의실 A'],status:'completed', appliedAt:'2026-03-15T20:00',actualCheckIn:'2026-03-16T10:02',actualCheckOut:'2026-03-16T14:55',memo:''},
+  {id:'JC-2026-0008',name:'오현미',org:'NGO 단체',    phone:'010-8901-2345',email:'oh@ngo.or.kr',     purpose:'미팅·상담',   detail:'파트너십',  checkIn:'2026-03-16T14:00',checkOut:'2026-03-16T16:00',isContinuous:false,contEndDate:'',      location:'센터',    locationId:'center',    locationIcon:'🏛️',facilities:['세미나실'],  status:'rejected',  appliedAt:'2026-03-15T11:30',actualCheckIn:null,actualCheckOut:null,memo:'시설 정기 점검일과 겹침'},
+  // 노쇼 이력 3건 (홍길동 - 경고 테스트용)
+  {id:'JC-2026-0009',name:'홍길동',org:'개인',        phone:'010-1111-2222',email:'hong@test.com',   purpose:'업무·재택근무',detail:'',          checkIn:'2026-03-10T09:00',checkOut:'2026-03-10T18:00',isContinuous:false,contEndDate:'',      location:'센터',    locationId:'center',    locationIcon:'🏛️',facilities:[],           status:'no-show',   appliedAt:'2026-03-09T10:00',actualCheckIn:null,actualCheckOut:null,memo:''},
+  {id:'JC-2026-0010',name:'홍길동',org:'개인',        phone:'010-1111-2222',email:'hong@test.com',   purpose:'창업 활동',   detail:'',          checkIn:'2026-03-13T10:00',checkOut:'2026-03-13T15:00',isContinuous:false,contEndDate:'',      location:'워케이션1',locationId:'workation1',locationIcon:'🌴',facilities:[],           status:'no-show',   appliedAt:'2026-03-12T10:00',actualCheckIn:null,actualCheckOut:null,memo:''},
+  {id:'JC-2026-0011',name:'홍길동',org:'개인',        phone:'010-1111-2222',email:'hong@test.com',   purpose:'미팅·상담',   detail:'',          checkIn:'2026-03-15T11:00',checkOut:'2026-03-15T13:00',isContinuous:false,contEndDate:'',      location:'센터',    locationId:'center',    locationIcon:'🏛️',facilities:['회의실 A'],status:'no-show',   appliedAt:'2026-03-14T10:00',actualCheckIn:null,actualCheckOut:null,memo:'3회 누적 노쇼'},
+];
+
+// ══ 상태 ══
+let apps = [];
+let filterStatus = 'all';
+
+// ══ 시설 설정 ══
+function loadFacilityConfig() {
+  const s = localStorage.getItem('jcec-facility-config');
+  return s ? JSON.parse(s) : DEFAULT_FACILITY_CONFIG;
+}
+function saveFacilityConfig(config) { localStorage.setItem('jcec-facility-config', JSON.stringify(config)); }
+function resetFacilityConfig() {
+  if (!confirm('시설 설정을 기본값으로 초기화하시겠습니까?')) return;
+  localStorage.removeItem('jcec-facility-config');
+  renderFacilitySettings();
+  toast('기본값으로 초기화되었습니다.');
+}
+
+// ══ 데이터 로드 ══
+function loadData() {
+  const stored = JSON.parse(localStorage.getItem('jcec-apps') || '[]');
+  apps = [...stored, ...MOCK.filter(m => !stored.find(s => s.id === m.id))];
+  checkAutoNoShow();
+  renderAll();
+  populateLocationFilter();
+}
+
+function renderAll() {
+  updateCards();
+  renderRecent();
+  renderQuickPending();
+  renderApplications();
+  renderFacilityStatus();
+  renderFacilitySettings();
+  renderVisitorHistory();
+  updateBadge();
+}
+
+// ══ 자동 노쇼 처리 (입실 예정 +30분 초과, approved 상태) ══
+function checkAutoNoShow() {
+  const now = new Date();
+  let changed = false;
+  apps.forEach(a => {
+    if (a.status === 'approved') {
+      const cutoff = new Date(new Date(a.checkIn).getTime() + 30 * 60 * 1000);
+      if (now > cutoff) {
+        a.status = 'no-show';
+        syncToStorage(a.id);
+        changed = true;
+      }
+    }
+  });
+  if (changed) { renderAll(); toast('⚠️ 노쇼 자동 처리되었습니다.'); }
+}
+setInterval(checkAutoNoShow, 60000);
+
+// ══ 카드 ══
+function updateCards() {
+  const today = todayStr();
+  const now = new Date();
+  const todayApps = apps.filter(a => a.checkIn.startsWith(today));
+  document.getElementById('card-total').textContent    = todayApps.length;
+  document.getElementById('card-pending').textContent  = apps.filter(a => a.status === 'pending').length;
+  document.getElementById('card-approved').textContent = todayApps.filter(a => a.status === 'approved').length;
+  document.getElementById('card-checkedin').textContent= apps.filter(a => a.status === 'checked-in').length;
+  document.getElementById('card-noshow').textContent   = todayApps.filter(a => a.status === 'no-show').length;
+}
+function updateBadge() {
+  const cnt = apps.filter(a => a.status === 'pending').length;
+  const b = document.getElementById('badge-pending');
+  cnt > 0 ? (b.textContent = cnt, b.classList.remove('hidden')) : b.classList.add('hidden');
+}
+
+// ══ 최근 신청 ══
+function renderRecent() {
+  const recent = [...apps].sort((a,b) => new Date(b.appliedAt)-new Date(a.appliedAt)).slice(0,6);
+  document.getElementById('recent-list').innerHTML = recent.map(a => `
+    <div class="px-5 py-3 flex items-center gap-3 hover:bg-gray-50 cursor-pointer" onclick="openModal('${a.id}')">
+      <span class="text-lg shrink-0">${a.locationIcon||'📍'}</span>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <span class="text-sm font-medium text-gray-900">${a.name}</span>
+          <span class="text-xs text-gray-400">${a.org}</span>
+          <span class="text-xs text-gray-300">·</span>
+          <span class="text-xs text-gray-500">${a.location||'-'}</span>
+          ${a.isContinuous ? '<span class="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full">연속</span>' : ''}
+        </div>
+        <p class="text-xs text-gray-500 mt-0.5">${a.purpose} · ${fmtDt(a.checkIn)}</p>
+      </div>
+      <span class="${statusClass(a.status)} text-xs px-2 py-0.5 rounded-full font-medium shrink-0">${statusLabel(a.status)}</span>
+    </div>`).join('');
+}
+
+// ══ 빠른 대기 처리 ══
+function renderQuickPending() {
+  const pending = apps.filter(a => a.status === 'pending');
+  const el = document.getElementById('quick-pending');
+  const empty = document.getElementById('quick-empty');
+  if (!pending.length) { el.innerHTML = ''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  el.innerHTML = pending.map(a => `
+    <div class="px-4 py-3">
+      <div class="flex items-start gap-2 mb-2">
+        <span class="text-lg">${a.locationIcon||'📍'}</span>
+        <div>
+          <p class="text-sm font-medium text-gray-900">${a.name} <span class="text-xs font-normal text-gray-400">${a.org}</span></p>
+          <p class="text-xs text-gray-500">${a.location} · ${a.purpose}</p>
+          <p class="text-xs text-gray-400">${fmtDate(a.checkIn)}</p>
+        </div>
+      </div>
+      <div class="flex gap-1.5">
+        <button onclick="updateStatus('${a.id}','approved')" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold py-1.5 rounded-lg">승인</button>
+        <button onclick="updateStatus('${a.id}','rejected')" class="flex-1 bg-red-500 hover:bg-red-600 text-white text-xs font-semibold py-1.5 rounded-lg">거부</button>
+        <button onclick="openModal('${a.id}')" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-semibold py-1.5 rounded-lg">상세</button>
+      </div>
+    </div>`).join('');
+}
+
+// ══ 장소 필터 ══
+function populateLocationFilter() {
+  const sel = document.getElementById('filter-location');
+  const cur = sel.value;
+  const config = loadFacilityConfig();
+  sel.innerHTML = '<option value="">전체 장소</option>' +
+    config.map(l => `<option value="${l.name}" ${cur===l.name?'selected':''}>${l.icon} ${l.name}</option>`).join('');
+}
+
+// ══ 신청 관리 ══
+function setFilter(status) {
+  filterStatus = status;
+  ['all','pending','approved','checked-in','completed','no-show','rejected'].forEach(s => {
+    const btn = document.getElementById(`tab-${s}`);
+    if (!btn) return;
+    btn.classList.toggle('active', s===status);
+    s!==status ? btn.classList.add('text-gray-500') : btn.classList.remove('text-gray-500');
+  });
+  renderApplications();
+}
+
+function renderApplications() {
+  const search   = document.getElementById('filter-search').value.toLowerCase();
+  const date     = document.getElementById('filter-date').value;
+  const location = document.getElementById('filter-location').value;
+
+  let filtered = apps.filter(a => {
+    if (filterStatus !== 'all' && a.status !== filterStatus) return false;
+    if (date && !a.checkIn.startsWith(date)) return false;
+    if (location && a.location !== location) return false;
+    if (search && !a.name.includes(search) && !a.org.toLowerCase().includes(search) && !(a.email||'').toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  const tbody = document.getElementById('app-table-body');
+  const empty = document.getElementById('app-empty');
+  if (!filtered.length) { tbody.innerHTML = ''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+
+  tbody.innerHTML = filtered.map(a => {
+    const btn = (label, id, newStatus, color) =>
+      `<button onclick="updateStatus('${id}','${newStatus}')"
+        class="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg border shadow-sm transition-all active:scale-95
+          ${color}">${label}</button>`;
+    const actionBtns = (() => {
+      if (a.status === 'pending')    return `<div class="flex gap-1.5">${btn('✓ 승인', a.id,'approved','bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-600')}${btn('✕ 거부', a.id,'rejected','bg-white hover:bg-red-50 text-red-600 border-red-300')}</div>`;
+      if (a.status === 'approved')   return `<div class="flex gap-1.5">${btn('↩ 체크인', a.id,'checked-in','bg-blue-600 hover:bg-blue-700 text-white border-blue-700')}${btn('✕ 노쇼', a.id,'no-show','bg-white hover:bg-orange-50 text-orange-600 border-orange-300')}</div>`;
+      if (a.status === 'checked-in') return btn('↗ 퇴실', a.id,'completed','bg-gray-700 hover:bg-gray-800 text-white border-gray-800');
+      return `<span class="text-xs text-gray-400">-</span>`;
+    })();
+    return `
+      <tr class="cursor-pointer" onclick="openModal('${a.id}')">
+        <td class="px-4 py-3 text-xs text-gray-500 font-mono">${a.id}</td>
+        <td class="px-4 py-3"><p class="text-sm font-medium text-gray-900">${a.name}</p><p class="text-xs text-gray-400">${a.org}</p></td>
+        <td class="px-4 py-3"><div class="flex items-center gap-1.5"><span>${a.locationIcon||'📍'}</span><span class="text-sm text-gray-700">${a.location||'-'}</span></div></td>
+        <td class="px-4 py-3 text-sm text-gray-700">${a.purpose}</td>
+        <td class="px-4 py-3 text-xs text-gray-600">${fmtDt(a.checkIn)}</td>
+        <td class="px-4 py-3 text-xs text-gray-600">${fmtDt(a.checkOut)}</td>
+        <td class="px-4 py-3">${a.isContinuous?`<span class="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">~${a.contEndDate}</span>`:'<span class="text-gray-300 text-xs">-</span>'}</td>
+        <td class="px-4 py-3"><span class="${statusClass(a.status)} text-xs px-2 py-0.5 rounded-full font-medium">${statusLabel(a.status)}</span></td>
+        <td class="px-4 py-3" onclick="event.stopPropagation()">${actionBtns}</td>
+      </tr>`;
+  }).join('');
+}
+
+// ══ 시설 현황 (체크인 기준) ══
+function renderFacilityStatus() {
+  const config = loadFacilityConfig();
+  const now = new Date();
+  document.getElementById('facility-status-grid').innerHTML = config.filter(loc=>loc.enabled).map(loc => {
+    const activeNow = apps.filter(a => a.locationId===loc.id && a.status==='checked-in');
+    const todayApproved = apps.filter(a => a.locationId===loc.id && ['approved','checked-in','completed'].includes(a.status) && a.checkIn.startsWith(todayStr()));
+
+    const facilityRows = loc.facilities.filter(f=>f.enabled).map(fac => {
+      const usingFac = activeNow.filter(a => a.facilities.includes(fac.name));
+      const todayFac = todayApproved.filter(a => a.facilities.includes(fac.name));
+      const pct = Math.min(100, Math.round((usingFac.length/fac.capacity)*100));
+      const bar = pct===0?'bg-gray-200':pct<60?'bg-emerald-400':pct<90?'bg-amber-400':'bg-red-400';
+      return `
+        <div class="flex items-center gap-3 py-2.5 border-b border-gray-100 last:border-0">
+          <span class="text-lg w-7 text-center">${facIcon(fac.name)}</span>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-sm font-medium text-gray-800">${fac.name}</span>
+              <span class="text-xs text-gray-400">${usingFac.length}/${fac.capacity} · 오늘 ${todayFac.length}건</span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-1.5">
+              <div class="${bar} h-1.5 rounded-full" style="width:${pct}%"></div>
+            </div>
+            ${usingFac.length?`<div class="mt-1.5 flex flex-wrap gap-1">${usingFac.map(a=>`<span class="text-[11px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">${a.name} ~${fmtTime(a.checkOut)}</span>`).join('')}</div>`:''}
+          </div>
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">${loc.icon}</span>
+            <div>
+              <h3 class="font-bold text-gray-900">${loc.name}</h3>
+              <p class="text-xs text-gray-500">체크인 ${activeNow.length}명 · 오늘 이용 ${todayApproved.length}건</p>
+            </div>
+          </div>
+          <span class="text-xs font-semibold px-2.5 py-1 rounded-full ${activeNow.length>0?'bg-blue-100 text-blue-700':'bg-gray-100 text-gray-500'}">
+            ${activeNow.length>0?`${activeNow.length}명 이용 중`:'비어있음'}
+          </span>
+        </div>
+        <div class="px-5 py-2">${facilityRows||'<p class="text-sm text-gray-400 py-3 text-center">운영 중인 시설 없음</p>'}</div>
+      </div>`;
+  }).join('');
+}
+
+function facIcon(n) {
+  if (n.includes('회의실')) return '🚪';
+  if (n.includes('세미나')) return '🎓';
+  if (n.includes('3D'))    return '🖨️';
+  return '📋';
+}
+
+// ══ 방문 이력 ══
+function renderVisitorHistory() {
+  const search = (document.getElementById('history-search')?.value || '').toLowerCase();
+  const filtered = search
+    ? apps.filter(a => a.name.includes(search) || (a.email||'').toLowerCase().includes(search) || a.org.toLowerCase().includes(search))
+    : apps;
+
+  // 이메일 기준으로 그루핑 (이메일 없으면 전화번호)
+  const visitors = {};
+  filtered.forEach(a => {
+    const key = (a.email||a.phone||'unknown').toLowerCase();
+    if (!visitors[key]) visitors[key] = { name:a.name, email:a.email||'-', org:a.org, total:0, completed:0, noShow:0, checkedIn:0, lastVisit:null, apps:[] };
+    const v = visitors[key];
+    v.total++;
+    if (a.status === 'completed')   v.completed++;
+    if (a.status === 'no-show')     v.noShow++;
+    if (a.status === 'checked-in')  v.checkedIn++;
+    if (!v.lastVisit || a.checkIn > v.lastVisit) v.lastVisit = a.checkIn;
+    v.apps.push(a);
+  });
+
+  const list = Object.values(visitors).sort((a,b) => (b.lastVisit||'').localeCompare(a.lastVisit||''));
+  const tbody = document.getElementById('visitor-table-body');
+  const empty = document.getElementById('visitor-empty');
+
+  if (!list.length) { tbody.innerHTML = ''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+
+  tbody.innerHTML = list.map((v,i) => {
+    const noShowRate = v.total > 0 ? Math.round((v.noShow/v.total)*100) : 0;
+    const isHighRisk = v.noShow >= 3;
+    return `
+      <tr class="hover:bg-gray-50">
+        <td class="px-5 py-3">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-medium text-gray-900">${v.name}</span>
+            ${isHighRisk ? '<span class="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full font-bold">⚠️ 노쇼주의</span>' : ''}
+          </div>
+        </td>
+        <td class="px-5 py-3 text-xs text-gray-600">${v.email}</td>
+        <td class="px-5 py-3 text-xs text-gray-600">${v.org}</td>
+        <td class="px-4 py-3 text-center text-sm font-semibold text-gray-900">${v.total}</td>
+        <td class="px-4 py-3 text-center text-sm font-semibold text-emerald-600">${v.completed}</td>
+        <td class="px-4 py-3 text-center">
+          <span class="text-sm font-semibold ${v.noShow>=3?'text-red-600':v.noShow>0?'text-orange-500':'text-gray-400'}">${v.noShow}</span>
+        </td>
+        <td class="px-4 py-3 text-center">
+          <span class="text-xs font-medium ${noShowRate>=50?'text-red-600':noShowRate>0?'text-orange-500':'text-gray-400'}">${noShowRate}%</span>
+        </td>
+        <td class="px-4 py-3 text-xs text-gray-500">${v.lastVisit ? fmtDate(v.lastVisit) : '-'}</td>
+        <td class="px-4 py-3 text-center">
+          <button onclick="openVisitorHistory(${i})" class="text-xs text-blue-600 hover:underline font-medium">이력 보기</button>
+        </td>
+      </tr>`;
+  }).join('');
+
+  // 상세 보기용 전역 저장
+  window._visitorList = list;
+}
+
+function openVisitorHistory(idx) {
+  const v = window._visitorList[idx];
+  if (!v) return;
+  const isHighRisk = v.noShow >= 3;
+  document.getElementById('history-modal-title').innerHTML =
+    `${v.name}님의 방문 이력 ${isHighRisk ? '<span class="text-sm font-normal text-orange-600 ml-2">⚠️ 노쇼 3회 이상</span>' : ''}`;
+
+  const rows = [...v.apps].sort((a,b)=>new Date(b.checkIn)-new Date(a.checkIn)).map(a => `
+    <tr class="border-t border-gray-100">
+      <td class="py-2 text-xs font-mono text-gray-400">${a.id}</td>
+      <td class="py-2 text-xs text-gray-700">${fmtDate(a.checkIn)}</td>
+      <td class="py-2 text-xs text-gray-700">${a.location||'-'}</td>
+      <td class="py-2 text-xs text-gray-700">${a.purpose}</td>
+      <td class="py-2 text-xs text-gray-600">${a.facilities.length?a.facilities.join(', '):'-'}</td>
+      <td class="py-2"><span class="${statusClass(a.status)} text-xs px-2 py-0.5 rounded-full font-medium">${statusLabel(a.status)}</span></td>
+      <td class="py-2 text-xs text-gray-500">${a.actualCheckIn ? fmtTime(a.actualCheckIn) : '-'}</td>
+      <td class="py-2 text-xs text-gray-500">${a.actualCheckOut ? fmtTime(a.actualCheckOut) : '-'}</td>
+    </tr>`).join('');
+
+  document.getElementById('history-modal-body').innerHTML = `
+    <div class="grid grid-cols-4 gap-3 mb-5">
+      <div class="bg-gray-50 rounded-xl p-3 text-center"><p class="text-xs text-gray-500">총 신청</p><p class="text-xl font-bold text-gray-900 mt-1">${v.total}</p></div>
+      <div class="bg-emerald-50 rounded-xl p-3 text-center"><p class="text-xs text-emerald-700">방문 완료</p><p class="text-xl font-bold text-emerald-600 mt-1">${v.completed}</p></div>
+      <div class="bg-orange-50 rounded-xl p-3 text-center"><p class="text-xs text-orange-700">노쇼</p><p class="text-xl font-bold ${v.noShow>=3?'text-red-600':'text-orange-500'} mt-1">${v.noShow}</p></div>
+      <div class="bg-blue-50 rounded-xl p-3 text-center"><p class="text-xs text-blue-700">체크인 중</p><p class="text-xl font-bold text-blue-600 mt-1">${v.checkedIn}</p></div>
+    </div>
+    ${isHighRisk ? `<div class="bg-orange-50 border border-orange-300 rounded-xl p-3 mb-4 text-xs text-orange-800">⚠️ 노쇼가 3회 이상 누적된 방문객입니다. 이후 신청 시 승인 거부를 고려해 주세요.</div>` : ''}
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-gray-50">
+            <th class="text-left py-2 px-0 text-xs text-gray-500 font-medium">신청번호</th>
+            <th class="text-left py-2 px-2 text-xs text-gray-500 font-medium">날짜</th>
+            <th class="text-left py-2 px-2 text-xs text-gray-500 font-medium">장소</th>
+            <th class="text-left py-2 px-2 text-xs text-gray-500 font-medium">목적</th>
+            <th class="text-left py-2 px-2 text-xs text-gray-500 font-medium">시설</th>
+            <th class="text-left py-2 px-2 text-xs text-gray-500 font-medium">상태</th>
+            <th class="text-left py-2 px-2 text-xs text-gray-500 font-medium">체크인</th>
+            <th class="text-left py-2 px-2 text-xs text-gray-500 font-medium">체크아웃</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  document.getElementById('history-modal').classList.remove('hidden');
+}
+
+function closeHistoryModal() { document.getElementById('history-modal').classList.add('hidden'); }
+
+// ══ 시설 관리 ══
+function facRow(facId, name, capacity, enabled) {
+  return `<tr class="border-t border-gray-100" data-fac-id="${facId}">
+    <td class="py-1.5 pr-2">
+      <input type="text" value="${esc(name)}" placeholder="시설명" maxlength="20"
+        class="fac-name w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
+    </td>
+    <td class="py-1.5 px-1">
+      <input type="number" value="${capacity}" min="1" max="999"
+        class="fac-cap w-16 text-center border border-gray-200 rounded-lg px-1 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
+    </td>
+    <td class="py-1.5 text-center">
+      <input type="checkbox" ${enabled?'checked':''} class="fac-en w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer">
+    </td>
+    <td class="py-1.5 text-center">
+      <button onclick="this.closest('tr').remove()" title="삭제"
+        class="w-6 h-6 flex items-center justify-center rounded-md text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors mx-auto">✕</button>
+    </td>
+  </tr>`;
+}
+
+function renderFacilitySettings() {
+  const config = loadFacilityConfig();
+  document.getElementById('facility-settings-grid').innerHTML = config.map(loc => `
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+        <div class="flex items-center gap-2.5"><span class="text-xl">${loc.icon}</span><span class="font-bold text-gray-900">${esc(loc.name)}</span></div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-500">${loc.enabled?'운영 중':'비운영'}</span>
+          <div class="toggle-track ${loc.enabled?'on':''}" onclick="toggleLocation('${loc.id}')"><div class="toggle-thumb"></div></div>
+        </div>
+      </div>
+      <div class="p-4">
+        <table class="w-full" id="fac-table-${loc.id}">
+          <thead><tr>
+            <th class="text-left text-xs text-gray-500 font-medium pb-2">시설명</th>
+            <th class="text-center text-xs text-gray-500 font-medium pb-2 w-18">정원</th>
+            <th class="text-center text-xs text-gray-500 font-medium pb-2 w-12">운영</th>
+            <th class="w-8 pb-2"></th>
+          </tr></thead>
+          <tbody>
+            ${loc.facilities.map(fac => facRow(fac.id, fac.name, fac.capacity, fac.enabled)).join('')}
+          </tbody>
+        </table>
+        <button onclick="addFacilityRow('${loc.id}')"
+          class="mt-2 w-full border border-dashed border-gray-300 hover:border-blue-400 text-gray-400 hover:text-blue-600 text-xs font-medium py-2 rounded-lg transition-colors">
+          + 시설 추가
+        </button>
+        <button onclick="saveLocationFacilities('${loc.id}')"
+          class="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 rounded-lg transition-colors">
+          저장
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+function addFacilityRow(locationId) {
+  const tbody = document.querySelector(`#fac-table-${locationId} tbody`);
+  const tr = document.createElement('tr');
+  tr.className = 'border-t border-gray-100';
+  tr.dataset.facId = 'new';
+  tr.innerHTML = `
+    <td class="py-1.5 pr-2">
+      <input type="text" placeholder="시설명 입력" maxlength="20"
+        class="fac-name w-full border border-blue-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
+    </td>
+    <td class="py-1.5 px-1">
+      <input type="number" value="4" min="1" max="999"
+        class="fac-cap w-16 text-center border border-gray-200 rounded-lg px-1 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
+    </td>
+    <td class="py-1.5 text-center">
+      <input type="checkbox" checked class="fac-en w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer">
+    </td>
+    <td class="py-1.5 text-center">
+      <button onclick="this.closest('tr').remove()" title="삭제"
+        class="w-6 h-6 flex items-center justify-center rounded-md text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors mx-auto">✕</button>
+    </td>`;
+  tbody.appendChild(tr);
+  tr.querySelector('.fac-name').focus();
+}
+
+function toggleLocation(locationId) {
+  const config = loadFacilityConfig();
+  const loc = config.find(l => l.id === locationId);
+  loc.enabled = !loc.enabled;
+  saveFacilityConfig(config);
+  renderFacilitySettings();
+  renderFacilityStatus();
+  toast(`${loc.name} ${loc.enabled?'운영 중':'비운영'}으로 변경됨`);
+}
+
+function saveLocationFacilities(locationId) {
+  const config = loadFacilityConfig();
+  const loc = config.find(l => l.id === locationId);
+  const rows = document.querySelectorAll(`#fac-table-${locationId} tbody tr`);
+  const newFacilities = [];
+  let hasEmpty = false;
+  rows.forEach(row => {
+    const name = row.querySelector('.fac-name').value.trim();
+    const cap  = parseInt(row.querySelector('.fac-cap').value) || 4;
+    const en   = row.querySelector('.fac-en').checked;
+    const facId = row.dataset.facId;
+    if (!name) { hasEmpty = true; return; }
+    const id = (facId && facId !== 'new') ? facId : `${locationId}-${Date.now()}-${Math.random().toString(36).slice(2,5)}`;
+    newFacilities.push({ id, name, capacity: Math.max(1, cap), enabled: en });
+  });
+  if (hasEmpty) { toast('⚠️ 시설명을 입력해 주세요.'); return; }
+  loc.facilities = newFacilities;
+  saveFacilityConfig(config);
+  renderFacilitySettings();
+  renderFacilityStatus();
+  toast(`${loc.name} 저장됨 — 신청자 화면에 즉시 반영됩니다.`);
+}
+
+// ══ 모달 ══
+function openModal(id) {
+  const a = apps.find(x => x.id === id);
+  if (!a) return;
+  const row = (l,val) => val ? `<div class="flex gap-3"><span class="text-xs text-gray-500 w-20 shrink-0 pt-0.5">${l}</span><span class="text-sm text-gray-900">${val}</span></div>` : '';
+
+  document.getElementById('modal-body').innerHTML = `
+    <div class="flex items-center gap-2">
+      <span class="text-xs font-mono text-gray-500">${a.id}</span>
+      <span class="${statusClass(a.status)} text-xs px-2 py-0.5 rounded-full font-medium ml-auto">${statusLabel(a.status)}</span>
+    </div>
+    <div class="space-y-2 bg-gray-50 rounded-xl p-4">
+      ${row('이름',esc(a.name))}${row('소속',esc(a.org))}${row('연락처',esc(a.phone))}${row('이메일',esc(a.email))}
+    </div>
+    <div class="space-y-2 bg-gray-50 rounded-xl p-4">
+      ${row('장소',`${a.locationIcon||''} ${esc(a.location||'-')}`)}
+      ${row('목적',esc(a.purpose))}${row('상세',esc(a.detail))}
+      ${row('입실예정',fmtDt(a.checkIn))}${row('퇴실예정',fmtDt(a.checkOut))}
+      ${a.isContinuous?row('연속사용',a.contEndDate+' 까지'):''}
+    </div>
+    ${(a.actualCheckIn||a.actualCheckOut) ? `
+    <div class="space-y-2 bg-blue-50 rounded-xl p-4">
+      ${row('실제 체크인',a.actualCheckIn?fmtDt(a.actualCheckIn):'-')}
+      ${row('실제 퇴실',a.actualCheckOut?fmtDt(a.actualCheckOut):'-')}
+    </div>` : ''}
+    <div class="bg-gray-50 rounded-xl p-4">
+      <p class="text-xs text-gray-500 mb-2">추가 시설</p>
+      ${a.facilities.length ? `<div class="flex flex-wrap gap-1.5">${a.facilities.map(f=>`<span class="text-xs bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full font-medium">${f}</span>`).join('')}</div>` : '<p class="text-xs text-gray-400">없음</p>'}
+    </div>
+    ${a.memo?`<div class="bg-amber-50 border border-amber-200 rounded-xl p-3"><p class="text-xs font-semibold text-amber-700 mb-1">관리자 메모</p><p class="text-sm text-amber-800">${esc(a.memo)}</p></div>`:''}
+    <div>
+      <label class="block text-xs font-medium text-gray-600 mb-1.5">관리자 메모</label>
+      <textarea id="modal-memo" rows="2" placeholder="메모를 입력하세요" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none">${a.memo}</textarea>
+    </div>`;
+
+  const actions = document.getElementById('modal-actions');
+  actions.innerHTML = '';
+  if (a.status==='pending')    actions.innerHTML = `<button onclick="updateStatus('${a.id}','approved',true)"   class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold py-2.5 rounded-xl">✓ 승인</button><button onclick="updateStatus('${a.id}','rejected',true)" class="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold py-2.5 rounded-xl">✕ 거부</button>`;
+  if (a.status==='approved')   actions.innerHTML = `<button onclick="updateStatus('${a.id}','checked-in',true)" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-xl">체크인 확인</button><button onclick="updateStatus('${a.id}','no-show',true)" class="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold py-2.5 rounded-xl">노쇼 처리</button>`;
+  if (a.status==='checked-in') actions.innerHTML = `<button onclick="updateStatus('${a.id}','completed',true)" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold py-2.5 rounded-xl">퇴실 처리</button>`;
+  actions.innerHTML += `<button onclick="saveMemo('${a.id}')" class="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-semibold py-2.5 rounded-xl">메모 저장</button>`;
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+
+function saveMemo(id) {
+  const idx = apps.findIndex(a => a.id === id);
+  if (idx !== -1) { apps[idx].memo = document.getElementById('modal-memo').value; syncToStorage(id); }
+  closeModal(); toast('메모가 저장되었습니다.');
+}
+
+// ══ 상태 변경 ══
+function updateStatus(id, status, fromModal=false) {
+  const idx = apps.findIndex(a => a.id === id);
+  if (idx === -1) return;
+  apps[idx].status = status;
+  if (status === 'checked-in') apps[idx].actualCheckIn  = new Date().toISOString();
+  if (status === 'completed')  apps[idx].actualCheckOut = new Date().toISOString();
+  syncToStorage(id);
+  if (fromModal) closeModal();
+  renderAll();
+  const labels = {approved:'승인',rejected:'거부','checked-in':'체크인 확인',completed:'퇴실 처리','no-show':'노쇼 처리'};
+  toast(`${apps[idx].name}님 신청이 ${labels[status]||status}되었습니다.`);
+}
+
+function syncToStorage(id) {
+  const stored = JSON.parse(localStorage.getItem('jcec-apps') || '[]');
+  const app = apps.find(a => a.id === id);
+  if (!app) return;
+  const idx = stored.findIndex(a => a.id === id);
+  idx !== -1 ? stored[idx] = app : stored.unshift(app);
+  localStorage.setItem('jcec-apps', JSON.stringify(stored));
+}
+
+// ══ 뷰 전환 ══
+function showView(view) {
+  ['dashboard','applications','facilities','visitor-history','facility-settings'].forEach(v => {
+    document.getElementById(`view-${v}`).classList.toggle('hidden', v!==view);
+    const nav = document.getElementById(`nav-${v}`);
+    if (nav) nav.classList.toggle('active', v===view);
+  });
+  const titles = {dashboard:'대시보드',applications:'신청 관리',facilities:'시설 현황','visitor-history':'방문 이력','facility-settings':'시설 관리'};
+  document.getElementById('page-title').textContent = titles[view];
+}
+
+// ══ 토스트 ══
+function toast(msg) {
+  const el = document.createElement('div');
+  el.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-sm px-4 py-2.5 rounded-xl shadow-lg z-[100] whitespace-nowrap';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2800);
+}
+
+function esc(str) { return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ══ 유틸 ══
+function todayStr() { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function fmtDt(str)   { if(!str) return '-'; return new Date(str).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}); }
+function fmtDate(str) { if(!str) return '-'; return new Date(str).toLocaleDateString('ko-KR',{month:'2-digit',day:'2-digit'}); }
+function fmtTime(str) { if(!str) return '-'; return new Date(str).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}); }
+function statusLabel(s) { return {pending:'대기',approved:'승인','checked-in':'체크인',completed:'완료',rejected:'거부','no-show':'노쇼'}[s]||s; }
+function statusClass(s) { return {pending:'status-pending',approved:'status-approved','checked-in':'status-checked-in',completed:'status-completed',rejected:'status-rejected','no-show':'status-no-show'}[s]||''; }
+
+// ══ 초기화 ══
+function updateClock() { document.getElementById('current-time').textContent = new Date().toLocaleString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}); }
+setInterval(updateClock, 1000); updateClock();
+document.getElementById('modal').addEventListener('click', e => { if(e.target===document.getElementById('modal')) closeModal(); });
+document.getElementById('history-modal').addEventListener('click', e => { if(e.target===document.getElementById('history-modal')) closeHistoryModal(); });
+document.getElementById('filter-date').value = todayStr();
+loadData();
+</script>
+</body>
+</html>

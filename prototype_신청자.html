@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>공간 이용 신청 | 제주창조경제혁신센터</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: -apple-system, 'Noto Sans KR', sans-serif; }
+    .location-card.selected { border-color: #2563eb !important; background-color: #eff6ff; }
+    .facility-card input:checked + .card-inner { border-color: #2563eb; background-color: #eff6ff; }
+    .facility-card .check-box {
+      width:20px; height:20px; border:2px solid #d1d5db; border-radius:4px;
+      display:flex; align-items:center; justify-content:center; transition:all .15s; flex-shrink:0;
+    }
+    .facility-card input:checked + .card-inner .check-box { border-color:#2563eb; background-color:#2563eb; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+<!-- ══ 헤더 ══ -->
+<header class="bg-white border-b border-gray-200 sticky top-0 z-20">
+  <div class="max-w-lg mx-auto px-4 h-14 flex items-center gap-3">
+    <img src="https://ccei.creativekorea.or.kr/jeju/resources/images/common/logo_jeju.png"
+         alt="제주창조경제혁신센터" class="h-7 w-auto max-w-[160px] object-contain"
+         onerror="this.onerror=null;this.style.display='none';document.getElementById('logo-fallback').style.display='flex'">
+    <div id="logo-fallback" style="display:none" class="items-center gap-2">
+      <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+        <span class="text-white text-[11px] font-extrabold">JC</span>
+      </div>
+      <span class="text-sm font-bold text-gray-900">제주창조경제혁신센터</span>
+    </div>
+    <a href="prototype_관리자.html"
+       class="ml-auto text-xs text-gray-400 hover:text-blue-600 border border-gray-200 hover:border-blue-300 rounded-lg px-2.5 py-1.5 transition-colors shrink-0">
+      관리자 →
+    </a>
+  </div>
+</header>
+
+<main class="max-w-lg mx-auto px-4 py-6 flex-1 w-full">
+
+  <!-- 스텝 인디케이터 -->
+  <div id="step-indicator" class="mb-6">
+    <div class="flex items-start justify-between">
+      <div id="si-1" class="flex flex-col items-center w-12">
+        <div class="w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center">1</div>
+        <span class="text-[11px] mt-1 text-blue-600 font-semibold text-center">기본<br>정보</span>
+      </div>
+      <div class="flex-1 h-0.5 mt-4 bg-gray-200" id="line-1"></div>
+      <div id="si-2" class="flex flex-col items-center w-12">
+        <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-400 text-sm font-bold flex items-center justify-center">2</div>
+        <span class="text-[11px] mt-1 text-gray-400 font-medium text-center">방문<br>정보</span>
+      </div>
+      <div class="flex-1 h-0.5 mt-4 bg-gray-200" id="line-2"></div>
+      <div id="si-3" class="flex flex-col items-center w-12">
+        <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-400 text-sm font-bold flex items-center justify-center">3</div>
+        <span class="text-[11px] mt-1 text-gray-400 font-medium text-center">장소·<br>시설</span>
+      </div>
+      <div class="flex-1 h-0.5 mt-4 bg-gray-200" id="line-3"></div>
+      <div id="si-4" class="flex flex-col items-center w-12">
+        <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-400 text-sm font-bold flex items-center justify-center">4</div>
+        <span class="text-[11px] mt-1 text-gray-400 font-medium text-center">최종<br>확인</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───── STEP 1: 기본 정보 ───── -->
+  <div id="step-1" class="step-panel">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+      <h2 class="text-lg font-bold text-gray-900 mb-0.5">기본 정보</h2>
+      <p class="text-sm text-gray-500 mb-5">출입자 기본 정보를 입력해 주세요.</p>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">이름 <span class="text-red-500">*</span></label>
+          <input type="text" id="f-name" placeholder="홍길동"
+            class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">소속 <span class="text-red-500">*</span></label>
+          <input type="text" id="f-org" placeholder="회사명 또는 소속 기관"
+            class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">연락처 <span class="text-red-500">*</span></label>
+          <input type="tel" id="f-phone" placeholder="010-0000-0000"
+            class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">이메일 <span class="text-red-500">*</span></label>
+          <input type="email" id="f-email" placeholder="example@email.com"
+            class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            oninput="checkNoShowWarning()" onblur="checkNoShowWarning()">
+          <p class="text-xs text-gray-400 mt-1">승인 안내 및 방문 이력 확인에 사용됩니다.</p>
+        </div>
+
+        <!-- 노쇼 경고 배너 -->
+        <div id="noshow-warning" class="hidden bg-orange-50 border border-orange-300 rounded-xl p-4">
+          <div class="flex items-start gap-2.5">
+            <span class="text-orange-500 text-lg shrink-0">⚠️</span>
+            <div>
+              <p class="text-sm font-semibold text-orange-800 mb-1">미방문 이력이 있습니다</p>
+              <p class="text-xs text-orange-700">방문 신청 승인 후 미방문건이 있었습니다. 지속적인 노쇼 누적 시 신청 승인이 거부될 수 있습니다.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mt-4">
+      <button onclick="next(2)" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 rounded-xl text-sm transition-colors">다음 단계 →</button>
+    </div>
+  </div>
+
+  <!-- ───── STEP 2: 방문 정보 ───── -->
+  <div id="step-2" class="step-panel hidden">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+      <h2 class="text-lg font-bold text-gray-900 mb-0.5">방문 정보</h2>
+      <p class="text-sm text-gray-500 mb-5">방문 목적과 이용 일시를 입력해 주세요.</p>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">방문 목적 <span class="text-red-500">*</span></label>
+          <select id="f-purpose" onchange="onPurposeChange()"
+            class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <option value="">목적을 선택해 주세요</option>
+            <option>업무·재택근무</option>
+            <option>창업 활동</option>
+            <option>미팅·상담</option>
+            <option>교육·세미나</option>
+            <option>장비 이용</option>
+            <option>기타</option>
+          </select>
+        </div>
+        <div id="purpose-detail-wrap" class="hidden">
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">상세 내용</label>
+          <textarea id="f-purpose-detail" rows="2" placeholder="방문 목적을 간략히 설명해 주세요"
+            class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">입실 일시 <span class="text-red-500">*</span></label>
+            <input type="datetime-local" id="f-checkin"
+              class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">퇴실 예정 <span class="text-red-500">*</span></label>
+            <input type="datetime-local" id="f-checkout"
+              class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+        <div class="border border-gray-200 rounded-xl p-4 bg-gray-50">
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" id="f-continuous" onchange="onContinuousChange()"
+              class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+            <div>
+              <p class="text-sm font-medium text-gray-700">연속 사용 신청</p>
+              <p class="text-xs text-gray-500">여러 날에 걸쳐 동일한 목적으로 이용하는 경우</p>
+            </div>
+          </label>
+          <div id="continuous-wrap" class="hidden mt-3 pt-3 border-t border-gray-200">
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">연속 사용 종료일 <span class="text-red-500">*</span></label>
+            <input type="date" id="f-cont-end"
+              class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <p class="text-xs text-gray-500 mt-1.5">입실일부터 이 날짜까지 매일 동일한 시간에 이용</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mt-4 flex gap-2">
+      <button onclick="back(1)" class="flex-1 bg-white hover:bg-gray-50 text-gray-700 font-semibold py-3.5 rounded-xl text-sm border border-gray-300 transition-colors">← 이전</button>
+      <button onclick="next(3)" class="flex-[2] bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 rounded-xl text-sm transition-colors">다음 단계 →</button>
+    </div>
+  </div>
+
+  <!-- ───── STEP 3: 장소 및 시설 ───── -->
+  <div id="step-3" class="step-panel hidden">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+      <h2 class="text-lg font-bold text-gray-900 mb-0.5">장소 및 시설 선택</h2>
+      <p class="text-sm text-gray-500 mb-5">이용하실 장소를 먼저 선택하고, 추가 시설을 선택해 주세요.</p>
+      <div class="mb-5">
+        <p class="text-sm font-semibold text-gray-800 mb-3">장소 선택 <span class="text-red-500">*</span></p>
+        <div id="location-grid" class="grid grid-cols-2 gap-2.5"></div>
+      </div>
+      <div id="facility-section" class="hidden border-t border-gray-200 pt-5">
+        <p class="text-sm font-semibold text-gray-800 mb-1">추가 시설 선택 <span class="text-gray-400 font-normal text-xs">(선택)</span></p>
+        <p class="text-xs text-gray-500 mb-3">선택한 장소의 오픈 공간은 기본 포함됩니다.</p>
+        <div id="facility-list" class="space-y-2"></div>
+        <div id="fac-empty-msg" class="hidden text-sm text-gray-400 text-center py-4">추가 신청 가능한 시설이 없습니다.</div>
+      </div>
+    </div>
+    <div class="mt-4 flex gap-2">
+      <button onclick="back(2)" class="flex-1 bg-white hover:bg-gray-50 text-gray-700 font-semibold py-3.5 rounded-xl text-sm border border-gray-300 transition-colors">← 이전</button>
+      <button onclick="next(4)" class="flex-[2] bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 rounded-xl text-sm transition-colors">다음 단계 →</button>
+    </div>
+  </div>
+
+  <!-- ───── STEP 4: 최종 확인 ───── -->
+  <div id="step-4" class="step-panel hidden">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+      <h2 class="text-lg font-bold text-gray-900 mb-0.5">신청 내용 확인</h2>
+      <p class="text-sm text-gray-500 mb-5">입력하신 내용을 최종 확인해 주세요.</p>
+      <div id="review-content" class="space-y-3"></div>
+
+      <!-- 프로세스 안내 -->
+      <div class="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4">
+        <p class="text-xs font-bold text-blue-800 mb-2">📋 이용 프로세스</p>
+        <div class="flex items-center gap-1.5 text-xs text-blue-700">
+          <span class="bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full font-medium">신청</span>
+          <span>→</span>
+          <span class="bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full font-medium">승인</span>
+          <span>→</span>
+          <span class="bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full font-medium">체크인</span>
+          <span>→</span>
+          <span class="bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full font-medium">퇴실</span>
+        </div>
+        <p class="text-xs text-blue-600 mt-2">승인 후 입실 예정 시각으로부터 <strong>30분 이내</strong>에 체크인하지 않으면 자동 노쇼 처리됩니다.</p>
+      </div>
+
+      <div class="mt-4 border border-gray-200 rounded-xl p-4 bg-gray-50">
+        <label class="flex items-start gap-3 cursor-pointer">
+          <input type="checkbox" id="f-agree"
+            class="w-4 h-4 mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer">
+          <div>
+            <p class="text-sm font-medium text-gray-700">개인정보 수집·이용 동의 <span class="text-red-500">*</span></p>
+            <p class="text-xs text-gray-500 mt-0.5">출입 관리 목적으로 이름, 소속, 연락처, 이메일을 수집합니다. 보관 기간은 1년입니다.</p>
+          </div>
+        </label>
+      </div>
+    </div>
+    <div class="mt-4 flex gap-2">
+      <button onclick="back(3)" class="flex-1 bg-white hover:bg-gray-50 text-gray-700 font-semibold py-3.5 rounded-xl text-sm border border-gray-300 transition-colors">← 이전</button>
+      <button onclick="submit()" class="flex-[2] bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 rounded-xl text-sm transition-colors">신청 제출</button>
+    </div>
+  </div>
+
+  <!-- ───── 완료 화면 ───── -->
+  <div id="step-complete" class="hidden">
+    <div class="text-center py-8">
+      <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-10 h-10 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+        </svg>
+      </div>
+      <h2 class="text-xl font-bold text-gray-900 mb-2">신청이 완료되었습니다!</h2>
+      <p class="text-sm text-gray-500 mb-6">관리자 승인 후 안내 드립니다.</p>
+      <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 text-left mb-4">
+        <p class="text-xs text-blue-600 font-semibold mb-1">신청 번호</p>
+        <p id="complete-id" class="text-2xl font-bold text-blue-700 mb-3">JC-2026-0001</p>
+        <div id="complete-summary" class="text-sm text-gray-700 space-y-1"></div>
+      </div>
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-left mb-4">
+        <p class="text-xs font-bold text-amber-800 mb-1.5">📌 체크인 안내</p>
+        <ul class="text-xs text-amber-700 space-y-1">
+          <li>• 승인 후 입실 당일 해당 장소 안내데스크에서 <strong>신청번호로 체크인</strong>해 주세요.</li>
+          <li>• 입실 예정 시각으로부터 <strong>30분 이내</strong> 체크인 필수 (미체크인 시 노쇼 처리)</li>
+          <li>• 퇴실 시에도 안내데스크에 알려주세요.</li>
+          <li>• 취소·변경은 입실 하루 전까지 연락 주세요. (064-000-0000)</li>
+        </ul>
+      </div>
+      <button onclick="resetForm()"
+        class="w-full border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 rounded-xl text-sm transition-colors">
+        새 신청하기
+      </button>
+    </div>
+  </div>
+
+</main>
+
+<!-- ══ 푸터 ══ -->
+<footer class="bg-white border-t border-gray-100 py-6 mt-4">
+  <div class="max-w-lg mx-auto px-4 flex flex-col items-center gap-2">
+    <img src="https://ccei.creativekorea.or.kr/jeju/resources/images/common/logo_jeju.png"
+         alt="제주창조경제혁신센터" class="h-6 w-auto opacity-50 grayscale"
+         onerror="this.style.display='none'">
+    <p class="text-[11px] text-gray-400">© 2026 제주창조경제혁신센터. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+const DEFAULT_FACILITY_CONFIG = [
+  { id:'center',     name:'센터',     icon:'🏛️', enabled:true, facilities:[
+    {id:'ctr-a',  name:'회의실 A', capacity:4,  enabled:true},
+    {id:'ctr-b',  name:'회의실 B', capacity:8,  enabled:true},
+    {id:'ctr-c',  name:'회의실 C', capacity:6,  enabled:true},
+    {id:'ctr-s',  name:'세미나실', capacity:20, enabled:true},
+    {id:'ctr-3d', name:'3D프린터', capacity:1,  enabled:true},
+  ]},
+  { id:'workation1', name:'워케이션1', icon:'🌴', enabled:true, facilities:[
+    {id:'wk1-a', name:'회의실 A', capacity:4,  enabled:true},
+    {id:'wk1-b', name:'회의실 B', capacity:8,  enabled:true},
+    {id:'wk1-c', name:'회의실 C', capacity:6,  enabled:true},
+    {id:'wk1-s', name:'세미나실', capacity:15, enabled:true},
+  ]},
+  { id:'workation2', name:'워케이션2', icon:'🌊', enabled:true, facilities:[
+    {id:'wk2-a', name:'회의실 A', capacity:4,  enabled:true},
+    {id:'wk2-b', name:'회의실 B', capacity:8,  enabled:true},
+    {id:'wk2-c', name:'회의실 C', capacity:6,  enabled:true},
+    {id:'wk2-s', name:'세미나실', capacity:15, enabled:true},
+  ]},
+  { id:'workation3', name:'워케이션3', icon:'☀️', enabled:true, facilities:[
+    {id:'wk3-a', name:'회의실 A', capacity:4,  enabled:true},
+    {id:'wk3-b', name:'회의실 B', capacity:8,  enabled:true},
+    {id:'wk3-c', name:'회의실 C', capacity:6,  enabled:true},
+    {id:'wk3-s', name:'세미나실', capacity:15, enabled:true},
+  ]},
+];
+
+function loadFacilityConfig() {
+  const s = localStorage.getItem('jcec-facility-config');
+  return s ? JSON.parse(s) : DEFAULT_FACILITY_CONFIG;
+}
+function facIcon(n) {
+  if (n.includes('회의실')) return '🚪';
+  if (n.includes('세미나')) return '🎓';
+  if (n.includes('3D'))    return '🖨️';
+  return '📋';
+}
+
+// ══ 상태 ══
+let step = 1;
+let selectedLocation = null;
+
+// ══ 노쇼 경고 체크 ══
+function checkNoShowWarning() {
+  const email = document.getElementById('f-email').value.trim().toLowerCase();
+  const warning = document.getElementById('noshow-warning');
+  if (!email) { warning.classList.add('hidden'); return; }
+  const allApps = JSON.parse(localStorage.getItem('jcec-apps') || '[]');
+  const noShowCount = allApps.filter(a =>
+    a.email && a.email.toLowerCase() === email && a.status === 'no-show'
+  ).length;
+  warning.classList.toggle('hidden', noShowCount < 3);
+}
+
+// ══ 네비게이션 ══
+function next(to) {
+  if (!validate(step)) return;
+  showStep(to);
+  if (to === 3) renderLocations();
+  if (to === 4) renderReview();
+}
+function back(to) {
+  showStep(to);
+  if (to === 3) renderLocations();
+}
+function showStep(to) {
+  if (step !== 'complete') document.getElementById(`step-${step}`).classList.add('hidden');
+  step = to;
+  if (to === 'complete') {
+    document.getElementById('step-indicator').classList.add('hidden');
+    document.getElementById('step-complete').classList.remove('hidden');
+  } else {
+    document.getElementById(`step-${to}`).classList.remove('hidden');
+    updateIndicator(to);
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateIndicator(current) {
+  for (let i = 1; i <= 4; i++) {
+    const si = document.getElementById(`si-${i}`);
+    const circle = si.firstElementChild;
+    const label  = si.lastElementChild;
+    const line   = document.getElementById(`line-${i}`);
+    if (i < current) {
+      circle.className = 'w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center';
+      circle.innerHTML = `<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>`;
+      label.className = 'text-[11px] mt-1 text-blue-600 font-semibold text-center';
+      if (line) { line.classList.remove('bg-gray-200'); line.classList.add('bg-blue-600'); }
+    } else if (i === current) {
+      circle.className = 'w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center';
+      circle.innerHTML = i;
+      label.className = 'text-[11px] mt-1 text-blue-600 font-semibold text-center';
+    } else {
+      circle.className = 'w-8 h-8 rounded-full bg-gray-200 text-gray-400 text-sm font-bold flex items-center justify-center';
+      circle.innerHTML = i;
+      label.className = 'text-[11px] mt-1 text-gray-400 font-medium text-center';
+    }
+  }
+}
+
+// ══ 유효성 검사 ══
+function validate(s) {
+  if (s === 1) {
+    if (!v('f-name') || !v('f-org') || !v('f-phone')) { alert('이름, 소속, 연락처는 필수 입력 항목입니다.'); return false; }
+    if (!v('f-email')) { alert('이메일은 필수 입력 항목입니다.'); return false; }
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRe.test(v('f-email'))) { alert('올바른 이메일 형식을 입력해 주세요.'); return false; }
+  }
+  if (s === 2) {
+    const ci = document.getElementById('f-checkin').value;
+    const co = document.getElementById('f-checkout').value;
+    if (!v('f-purpose') || !ci || !co) { alert('방문 목적과 입실/퇴실 일시는 필수 입력 항목입니다.'); return false; }
+    if (new Date(ci) < new Date()) { alert('입실 일시는 현재 시각 이후여야 합니다.'); return false; }
+    if (ci >= co) { alert('퇴실 시간은 입실 시간 이후여야 합니다.'); return false; }
+    if (document.getElementById('f-continuous').checked && !v('f-cont-end')) { alert('연속 사용 종료일을 입력해 주세요.'); return false; }
+  }
+  if (s === 3) {
+    if (!selectedLocation) { alert('장소를 선택해 주세요.'); return false; }
+  }
+  return true;
+}
+function v(id) { return document.getElementById(id).value.trim(); }
+
+function onPurposeChange() {
+  const p = document.getElementById('f-purpose').value;
+  document.getElementById('purpose-detail-wrap').classList.toggle('hidden', !['미팅·상담','교육·세미나','장비 이용','기타'].includes(p));
+}
+function onContinuousChange() {
+  document.getElementById('continuous-wrap').classList.toggle('hidden', !document.getElementById('f-continuous').checked);
+}
+
+// ══ 장소 렌더링 ══
+function renderLocations() {
+  const config = loadFacilityConfig();
+  document.getElementById('location-grid').innerHTML = config.map(loc => {
+    const ef = loc.facilities.filter(f => f.enabled);
+    const sel = selectedLocation && selectedLocation.id === loc.id;
+    if (!loc.enabled) return `
+      <div class="border-2 border-gray-100 rounded-xl p-4 bg-gray-50 opacity-40 cursor-not-allowed">
+        <span class="text-2xl">${loc.icon}</span>
+        <p class="text-sm font-bold text-gray-400 mt-1">${loc.name}</p>
+        <p class="text-xs text-gray-400">운영 중지</p>
+      </div>`;
+    return `
+      <div class="location-card border-2 border-gray-200 rounded-xl p-4 cursor-pointer hover:border-blue-300 transition-all ${sel?'selected':''}"
+           onclick="selectLocation('${loc.id}')">
+        <div class="flex items-start justify-between">
+          <span class="text-2xl">${loc.icon}</span>
+          ${sel?`<svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>`:''}
+        </div>
+        <p class="text-sm font-bold text-gray-900 mt-2">${loc.name}</p>
+        <p class="text-xs text-gray-500 mt-0.5">시설 ${ef.length}종 운영</p>
+      </div>`;
+  }).join('');
+}
+
+function selectLocation(id) {
+  const config = loadFacilityConfig();
+  const loc = config.find(l => l.id === id);
+  if (!loc || !loc.enabled) return;
+  selectedLocation = { id: loc.id, name: loc.name, icon: loc.icon };
+  document.querySelectorAll('.fac-check').forEach(cb => cb.checked = false);
+  renderLocations();
+  const ef = loc.facilities.filter(f => f.enabled);
+  const list = document.getElementById('facility-list');
+  const empty = document.getElementById('fac-empty-msg');
+  if (!ef.length) { list.innerHTML = ''; empty.classList.remove('hidden'); }
+  else {
+    empty.classList.add('hidden');
+    list.innerHTML = ef.map(fac => `
+      <label class="facility-card block cursor-pointer">
+        <input type="checkbox" value="${fac.name}" class="sr-only fac-check" onchange="onFacilityChange()">
+        <div class="card-inner border border-gray-200 rounded-xl p-3.5 flex items-center gap-3 hover:border-blue-300 transition-colors">
+          <span class="text-xl">${facIcon(fac.name)}</span>
+          <div class="flex-1">
+            <p class="text-sm font-semibold text-gray-900">${fac.name}</p>
+            <p class="text-xs text-gray-500">최대 ${fac.capacity}${fac.name.includes('프린터')?'대':'인'}</p>
+          </div>
+          <div class="check-box">
+            <svg class="check-icon w-3 h-3 text-white hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+            </svg>
+          </div>
+        </div>
+      </label>`).join('');
+  }
+  document.getElementById('facility-section').classList.remove('hidden');
+  window.scrollTo({ top: document.getElementById('facility-section').offsetTop - 100, behavior: 'smooth' });
+}
+
+function onFacilityChange() {
+  document.querySelectorAll('.facility-card').forEach(card => {
+    const cb = card.querySelector('.fac-check');
+    const inner = card.querySelector('.card-inner');
+    const icon = card.querySelector('.check-icon');
+    const box = card.querySelector('.check-box');
+    if (cb.checked) {
+      inner.classList.add('border-blue-500','bg-blue-50'); inner.classList.remove('border-gray-200');
+      box.classList.add('bg-blue-600','border-blue-600'); icon.classList.remove('hidden');
+    } else {
+      inner.classList.remove('border-blue-500','bg-blue-50'); inner.classList.add('border-gray-200');
+      box.classList.remove('bg-blue-600','border-blue-600'); icon.classList.add('hidden');
+    }
+  });
+}
+
+// ══ 리뷰 ══
+function renderReview() {
+  const fmtDt = str => str ? new Date(str).toLocaleString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-';
+  const isCont = document.getElementById('f-continuous').checked;
+  const addFacs = [...document.querySelectorAll('.fac-check:checked')].map(c => c.value);
+  const row = (l, val) => val ? `<div class="flex gap-3 px-4 py-2.5 border-b border-gray-100 last:border-0"><span class="text-xs text-gray-500 w-20 shrink-0 pt-0.5">${l}</span><span class="text-sm text-gray-900 font-medium">${val}</span></div>` : '';
+  const section = (title, rows) => `<div class="rounded-xl border border-gray-200 overflow-hidden"><div class="bg-gray-100 px-4 py-2.5 border-b border-gray-200"><p class="text-xs font-semibold text-gray-600 uppercase tracking-wide">${title}</p></div>${rows}</div>`;
+
+  document.getElementById('review-content').innerHTML =
+    section('기본 정보', row('이름',v('f-name'))+row('소속',v('f-org'))+row('연락처',v('f-phone'))+row('이메일',v('f-email'))) +
+    section('방문 정보', row('목적',document.getElementById('f-purpose').value)+row('입실',fmtDt(document.getElementById('f-checkin').value))+row('퇴실',fmtDt(document.getElementById('f-checkout').value))+(isCont?row('연속사용',v('f-cont-end')+' 까지'):'')) +
+    `<div class="rounded-xl border border-gray-200 overflow-hidden">
+      <div class="bg-gray-100 px-4 py-2.5 border-b border-gray-200"><p class="text-xs font-semibold text-gray-600 uppercase tracking-wide">장소 및 시설</p></div>
+      <div class="px-4 py-3">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-lg">${selectedLocation?.icon}</span>
+          <span class="text-sm font-semibold text-gray-900">${selectedLocation?.name}</span>
+          <span class="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">오픈 공간 포함</span>
+        </div>
+        ${addFacs.length ? `<div class="flex flex-wrap gap-1.5">${addFacs.map(f=>`<span class="text-xs bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full font-medium">${f}</span>`).join('')}</div>` : '<p class="text-xs text-gray-400">추가 시설 없음</p>'}
+      </div>
+    </div>`;
+}
+
+// ══ 제출 ══
+function submit() {
+  if (!document.getElementById('f-agree').checked) { alert('개인정보 수집·이용에 동의해 주세요.'); return; }
+  const id = 'JC-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-4);
+  const addFacs = [...document.querySelectorAll('.fac-check:checked')].map(c => c.value);
+  const app = {
+    id, name:v('f-name'), org:v('f-org'), phone:v('f-phone'), email:v('f-email').toLowerCase(),
+    purpose:document.getElementById('f-purpose').value, detail:v('f-purpose-detail'),
+    checkIn:document.getElementById('f-checkin').value, checkOut:document.getElementById('f-checkout').value,
+    isContinuous:document.getElementById('f-continuous').checked, contEndDate:v('f-cont-end'),
+    location:selectedLocation.name, locationId:selectedLocation.id, locationIcon:selectedLocation.icon,
+    facilities:addFacs, status:'pending',
+    appliedAt:new Date().toISOString(), actualCheckIn:null, actualCheckOut:null, memo:''
+  };
+  const apps = JSON.parse(localStorage.getItem('jcec-apps') || '[]');
+  apps.unshift(app);
+  localStorage.setItem('jcec-apps', JSON.stringify(apps));
+
+  document.getElementById('complete-id').textContent = id;
+  const fmt = str => new Date(str).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+  document.getElementById('complete-summary').innerHTML = `
+    <p><span class="text-gray-500">신청자:</span> ${app.name} · ${app.org}</p>
+    <p><span class="text-gray-500">장소:</span> ${selectedLocation.icon} ${app.location}</p>
+    <p><span class="text-gray-500">목적:</span> ${app.purpose}</p>
+    <p><span class="text-gray-500">입실:</span> ${fmt(app.checkIn)}</p>
+    <p><span class="text-gray-500">퇴실:</span> ${fmt(app.checkOut)}</p>
+    ${addFacs.length?`<p><span class="text-gray-500">추가 시설:</span> ${addFacs.join(', ')}</p>`:''}`;
+
+  document.getElementById('step-4').classList.add('hidden');
+  showStep('complete');
+}
+
+function resetForm() {
+  document.getElementById('step-complete').classList.add('hidden');
+  document.getElementById('step-indicator').classList.remove('hidden');
+  document.querySelectorAll('input:not([type=checkbox]):not([type=radio]),textarea,select').forEach(el=>el.value='');
+  document.querySelectorAll('input[type=checkbox]').forEach(el=>el.checked=false);
+  document.getElementById('continuous-wrap').classList.add('hidden');
+  document.getElementById('purpose-detail-wrap').classList.add('hidden');
+  document.getElementById('facility-section').classList.add('hidden');
+  document.getElementById('noshow-warning').classList.add('hidden');
+  selectedLocation = null; step = 1;
+  document.getElementById('step-1').classList.remove('hidden');
+  updateIndicator(1);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  // 현재 시각 + 1시간을 기본 체크인으로 설정 (자정 넘으면 다음날로)
+  const ciTime = new Date(now.getTime() + 60 * 60 * 1000);
+  ciTime.setMinutes(0, 0, 0);
+  const coTime = new Date(ciTime.getTime() + 5 * 60 * 60 * 1000);
+  const fmt = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:00`;
+  document.getElementById('f-checkin').value  = fmt(ciTime);
+  document.getElementById('f-checkout').value = fmt(coTime);
+  // 과거 날짜 선택 방지
+  const todayBase = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  document.getElementById('f-checkin').min  = `${todayBase}T00:00`;
+  document.getElementById('f-checkout').min = `${todayBase}T00:00`;
+  document.getElementById('f-cont-end').min = todayBase;
+});
+</script>
+</body>
+</html>
