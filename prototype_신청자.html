@@ -500,7 +500,7 @@ function onFacilityChange() {
   });
 }
 
-function esc(str) { return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function esc(str) { return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;'); }
 
 // ══ 리뷰 ══
 function renderReview() {
@@ -533,7 +533,9 @@ function renderReview() {
 // ══ 제출 ══
 function submit() {
   if (!document.getElementById('f-agree').checked) { alert('개인정보 수집·이용에 동의해 주세요.'); return; }
-  const id = 'JC-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-4);
+  const ci = document.getElementById('f-checkin').value;
+  if (new Date(ci) < new Date()) { alert('입실 일시가 현재 시각보다 과거입니다. 일정을 다시 확인해 주세요.'); return; }
+  const id = 'JC-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-6);
   const addFacs = [...document.querySelectorAll('.fac-check:checked')].map(c => c.value);
   const app = {
     id, name:v('f-name'), org:v('f-org'), phone:v('f-phone'), email:v('f-email').toLowerCase(),
